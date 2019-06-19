@@ -28,7 +28,11 @@ let App = () => {
       <MainMenu width={300} back={back} setActiveView={setActiveView} />
     );
   }
-
+  window.chrome.storage.local.get(["started"], function(result) {
+    console.log("Value currently is " + result.started);
+  });
+  window.foo = "this works";
+  console.log(window.chrome.tabs);
   return <Fragment>{getCurrentView()}</Fragment>;
 };
 

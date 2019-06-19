@@ -17,13 +17,22 @@ import MainMenu from "./MainMenu";
 
 let Settings = (props) => {
   let { back, width } = props;
-  let [url, setUrl] = useState(localStorage.getItem('url'));
+  let [url, setUrl] = useState(null);
+
+  if (url === null) {
+    window.chrome.storage.local.get(["serverURL"], function (result) {
+      setUrl(result.serverURL)
+    });
+  }
 
   return (
     <Card style={{ width: width }}>
       <CardContent>
         <Toolbar disableGutters={true}>
           <IconButton fontSize="small" onClick={_ => {
+            window.chrome.runtime.getBackgroundPage(w => {
+              w.getServerStatus();
+            })
             back();
           }}><Icon>arrow_back</Icon></IconButton>
           <Typography>Settings</Typography>
@@ -34,7 +43,7 @@ let Settings = (props) => {
           value={url}
           onChange={e => {
             setUrl(e.target.value)
-            localStorage.setItem("url", e.target.value)
+            window.chrome.storage.local.set({ serverURL: e.target.value });
           }}
           margin="normal"
         />
