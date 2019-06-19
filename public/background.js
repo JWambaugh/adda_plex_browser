@@ -25,12 +25,19 @@ chrome.tabs.onActivated.addListener(activeInfo => {
 });
 
 window.getServerStatus = _ => {
-  window.chrome.storage.local.get(["serverURL"], r => {
-    if (r.serverURL != "") {
+  window.chrome.storage.local.get(["serverURL", "sharedKey"], r => {
+    if (r.serverURL != "" && r.sharedKey) {
+      let data = {
+        timestamp: +new Date()
+      };
+
       Tini.ajax({
         url: r.serverURL + "/status",
         type: "get",
-        data: {},
+        data: data,
+        headers: {
+          "X-Signature": getHmac(data, r.sharedKey)
+        },
         success: r => {
           let data = JSON.parse(r);
           console.log("server status:", data);
@@ -42,28 +49,65 @@ window.getServerStatus = _ => {
 };
 
 window.performAction = action => {
-  window.chrome.storage.local.get(["serverURL", "activeUrl"], r => {
-    if (r.serverURL != "") {
-      let data = {
-        ...action,
-        url: r.activeUrl
-      };
-
-      Tini.ajax({
-        url: r.serverURL + "/action",
-        type: "get",
-        data: data,
-        success: r => {
-          let data = JSON.parse(r);
-          console.log("action completed:", data);
-          chrome.notifications.create("", {
-            message: data.Message,
-            type: "basic",
-            iconUrl: "Skull-icon.png",
-            title: data.Status === "ok" ? "Success" : "Error"
-          });
-        }
-      });
+  window.chrome.storage.local.get(
+    ["serverURL", "activeUrl", "sharedKey"],
+    r => {
+      if (r.serverURL != "" && r.sharedKey) {
+        let data = {
+          Name: action.Name,
+          pluginIdentifier: action.pluginIdentifier,
+          url: r.activeUrl,
+          timestamp: +new Date()
+        };
+        let hash = getHmac(data, r.sharedKey);
+        console.log("hash", hash);
+        Tini.ajax({
+          url: r.serverURL + "/action",
+          type: "get",
+          data: data,
+          headers: {
+            "X-Signature": hash
+          },
+          success: r => {
+            let data = JSON.parse(r);
+            console.log("action completed:", data);
+            createNotification(
+              data.Status === "ok" ? "Success" : "Error",
+              data.Message
+            );
+          }
+        });
+      }
     }
+  );
+};
+
+let getHmac = (data, sharedKey) => {
+  console.log(data);
+  var shaObj = new jsSHA("SHA-256", "TEXT");
+  shaObj.setHMACKey(sharedKey, "TEXT");
+  let keys = Object.keys(data);
+  keys = keys.sort();
+  keys.forEach(key => {
+    if (data[key]) {
+      console.log(key);
+      shaObj.update(key);
+      console.log(data[key]);
+      if (data[key].toString) {
+        shaObj.update(data[key].toString());
+      } else {
+        shaObj.update(data[key]);
+      }
+    }
+  });
+  return shaObj.getHMAC("HEX");
+};
+
+let createNotification = (title, message) => {
+  chrome.notifications.create("", {
+    message: message,
+    type: "basic",
+    iconUrl: "Skull-icon.png",
+    title: title
   });
 };

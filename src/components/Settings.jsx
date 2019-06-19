@@ -18,10 +18,15 @@ import MainMenu from "./MainMenu";
 let Settings = (props) => {
   let { back, width } = props;
   let [url, setUrl] = useState(null);
-
+  let [key, setKey] = useState(null);
   if (url === null) {
     window.chrome.storage.local.get(["serverURL"], function (result) {
       setUrl(result.serverURL)
+    });
+  }
+  if (key === null) {
+    window.chrome.storage.local.get(["sharedKey"], function (result) {
+      setKey(result.sharedKey)
     });
   }
 
@@ -44,6 +49,15 @@ let Settings = (props) => {
           onChange={e => {
             setUrl(e.target.value)
             window.chrome.storage.local.set({ serverURL: e.target.value });
+          }}
+          margin="normal"
+        />
+        <TextField
+          label="Shared Key"
+          value={key}
+          onChange={e => {
+            setKey(e.target.value)
+            window.chrome.storage.local.set({ sharedKey: e.target.value });
           }}
           margin="normal"
         />

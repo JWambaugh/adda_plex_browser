@@ -11,7 +11,7 @@ Tini.r = function() {
     }
   }
 };
-Tini.s = function(u, f, m, a) {
+Tini.s = function(u, f, m, a, h) {
   var r = Tini.r();
   r.open(m, u, true);
   r.onreadystatechange = function() {
@@ -21,6 +21,12 @@ Tini.s = function(u, f, m, a) {
   };
   if (m == "POST")
     r.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+  let hKeys = Object.keys(h);
+  for (let i = 0; i < hKeys.length; i++) {
+    console.log(hKeys[i], h[hKeys[i]]);
+    r.setRequestHeader(hKeys[i], h[hKeys[i]]);
+  }
   r.send(a);
 };
 Tini.p = function(o, k) {
@@ -36,15 +42,21 @@ Tini.p = function(o, k) {
   return p;
 };
 Tini.ajax = function(c) {
-  var p = "";
+  var p = "",
+    h = {};
   if (c.data != undefined) {
     p = Tini.p(c.data);
   }
+  if ("headers" in c) {
+    h = c["headers"];
+  }
+
+  if (!("type" in c)) c.type = "get";
   if (c.type.toLowerCase() == "post") {
-    Tini.s(c.url, c.success, "POST", p);
+    Tini.s(c.url, c.success, "POST", p, h);
   } else {
     if (c.url.indexOf("?") == -1) c.url += "?";
     else c.url += "&";
-    Tini.s(c.url + p, c.success, "GET");
+    Tini.s(c.url + p, c.success, "GET", null, h);
   }
 };
