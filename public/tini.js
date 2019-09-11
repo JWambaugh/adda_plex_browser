@@ -1,62 +1,65 @@
 //Very light ajax lib that replaces jQuery. By Jordan Wambaugh. V1.3 github.com/martamius/tiniAjax
-var Tini = {};
+var Tini = {}
 Tini.r = function() {
   try {
-    return new ActiveXObject("Msxml2.XMLHTTP");
+    return new ActiveXObject("Msxml2.XMLHTTP")
   } catch (e) {
     try {
-      return new ActiveXObject("Microsoft.XMLHTTP");
+      return new ActiveXObject("Microsoft.XMLHTTP")
     } catch (e) {
-      return new XMLHttpRequest();
+      return new XMLHttpRequest()
     }
   }
-};
-Tini.s = function(u, f, m, a, h) {
-  var r = Tini.r();
-  r.open(m, u, true);
+}
+Tini.s = function(u, f, m, a, h, e) {
+  console.log("error:", e)
+  var r = Tini.r()
+  r.open(m, u, true)
   r.onreadystatechange = function() {
     if (r.readyState == 4 && f) {
-      f(r.responseText);
+      if (!r.response) {
+        if (e) e(r.statusText)
+      } else f(r.responseText)
     }
-  };
+  }
   if (m == "POST")
-    r.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    r.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
 
-  let hKeys = Object.keys(h);
+  let hKeys = Object.keys(h)
   for (let i = 0; i < hKeys.length; i++) {
-    console.log(hKeys[i], h[hKeys[i]]);
-    r.setRequestHeader(hKeys[i], h[hKeys[i]]);
+    console.log(hKeys[i], h[hKeys[i]])
+    r.setRequestHeader(hKeys[i], h[hKeys[i]])
   }
-  r.send(a);
-};
+  r.send(a)
+}
 Tini.p = function(o, k) {
-  var p = "";
+  var p = ""
   for (var x in o) {
-    var d = o[x];
-    var l;
-    if (k != undefined) l = k + "[" + x + "]";
-    else l = x;
-    if (typeof d == "object") p += Tini.p(d, l);
-    else p += escape(l) + "=" + escape(d) + "&";
+    var d = o[x]
+    var l
+    if (k != undefined) l = k + "[" + x + "]"
+    else l = x
+    if (typeof d == "object") p += Tini.p(d, l)
+    else p += escape(l) + "=" + escape(d) + "&"
   }
-  return p;
-};
+  return p
+}
 Tini.ajax = function(c) {
   var p = "",
-    h = {};
+    h = {}
   if (c.data != undefined) {
-    p = Tini.p(c.data);
+    p = Tini.p(c.data)
   }
   if ("headers" in c) {
-    h = c["headers"];
+    h = c["headers"]
   }
 
-  if (!("type" in c)) c.type = "get";
+  if (!("type" in c)) c.type = "get"
   if (c.type.toLowerCase() == "post") {
-    Tini.s(c.url, c.success, "POST", p, h);
+    Tini.s(c.url, c.success, "POST", p, h, c.error)
   } else {
-    if (c.url.indexOf("?") == -1) c.url += "?";
-    else c.url += "&";
-    Tini.s(c.url + p, c.success, "GET", null, h);
+    if (c.url.indexOf("?") == -1) c.url += "?"
+    else c.url += "&"
+    Tini.s(c.url + p, c.success, "GET", null, h, c.error)
   }
-};
+}

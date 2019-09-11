@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef } from "react"
 import {
   ListItem,
   ListItemText,
@@ -12,34 +12,38 @@ import {
   Toolbar,
   Divider,
   TextField
-} from "@material-ui/core";
-import MainMenu from "./MainMenu";
+} from "@material-ui/core"
+import MainMenu from "./MainMenu"
 
-let Settings = (props) => {
-  let { back, width } = props;
-  let [url, setUrl] = useState(null);
-  let [key, setKey] = useState(null);
+let Settings = props => {
+  let { back, width } = props
+  let [url, setUrl] = useState(null)
+  let [key, setKey] = useState(null)
   if (url === null) {
-    window.chrome.storage.local.get(["serverURL"], function (result) {
+    window.chrome.storage.local.get(["serverURL"], function(result) {
       setUrl(result.serverURL)
-    });
+    })
   }
   if (key === null) {
-    window.chrome.storage.local.get(["sharedKey"], function (result) {
+    window.chrome.storage.local.get(["sharedKey"], function(result) {
       setKey(result.sharedKey)
-    });
+    })
   }
 
   return (
     <Card style={{ width: width }}>
       <CardContent>
         <Toolbar disableGutters={true}>
-          <IconButton fontSize="small" onClick={_ => {
-            window.chrome.runtime.getBackgroundPage(w => {
-              w.getServerStatus();
-            })
-            back();
-          }}><Icon>arrow_back</Icon></IconButton>
+          <IconButton
+            fontSize="small"
+            onClick={_ => {
+              window.chrome.storage.local.set({ serverStatus: null })
+              window.chrome.runtime.sendMessage({ action: "serverStatus" })
+              back()
+            }}
+          >
+            <Icon>arrow_back</Icon>
+          </IconButton>
           <Typography>Settings</Typography>
         </Toolbar>
         <Divider />
@@ -48,7 +52,7 @@ let Settings = (props) => {
           value={url}
           onChange={e => {
             setUrl(e.target.value)
-            window.chrome.storage.local.set({ serverURL: e.target.value });
+            window.chrome.storage.local.set({ serverURL: e.target.value })
           }}
           margin="normal"
         />
@@ -57,13 +61,13 @@ let Settings = (props) => {
           value={key}
           onChange={e => {
             setKey(e.target.value)
-            window.chrome.storage.local.set({ sharedKey: e.target.value });
+            window.chrome.storage.local.set({ sharedKey: e.target.value })
           }}
           margin="normal"
         />
       </CardContent>
     </Card>
-  );
-};
+  )
+}
 
-export default Settings;
+export default Settings
